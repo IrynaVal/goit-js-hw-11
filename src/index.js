@@ -1,6 +1,5 @@
-import axios from "axios";
 import Notiflix from 'notiflix';
-// import {fetchImages} from './fetchImages.js'
+import {fetchImages} from './fetchImages.js'
 // console.log(Notiflix);
 
 // Notiflix.Notify.success('Hooray! We found totalHits images.');
@@ -9,45 +8,56 @@ import Notiflix from 'notiflix';
 // Notiflix.Notify.info('We're sorry, but you've reached the end of search results.');
 
 const form = document.querySelector('#search-form');
-const input = document.querySelector('input');
 const gallery = document.querySelector('.gallery');
-// console.log(gallery)
+const loadMoreBtn = document.querySelector('.load-more');
+let searchQuery = '';
+let page = 1;
+let imgPerPage = 40;
 
-input.addEventListener('input', onInputSearch);
 form.addEventListener('submit', onFormSubmit);
+loadMoreBtn.addEventListener('click', onLoadMore);
 
-function onInputSearch(evt) {
-    const searchQuery = evt.target.value.trim();
-
-//     if (!searchQuery) {
-// //     clearFields();
-//     return;
-//     }
-    console.log(searchQuery)
-    return searchQuery;
-}
- 
 function onFormSubmit(evt) {
-    evt.preventDefault();
+  evt.preventDefault();
+  
+  searchQuery = evt.currentTarget.elements.searchQuery.value.trim();
 
-    fetchImages().then(data => {
+  // if (!searchQuery) {
+  //   clearMarkup();
+  //   return;
+  //   }
+
+    fetchImages(searchQuery, page, imgPerPage).then(data => {
         if (data.hits.length === 0) {
-            onFetchError();
-        }
-        console.log(data.hits);
+          onFetchError();
+          return;
+      }
+            
+      Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+      
+      if (data.totalHits <= imgPerPage) {
+        loadMoreBtn.hidden = true;
+        Notiflix.Notify.info('We`re sorry, but you`ve reached the end of search results.');
+      }
+      createImageslist(data.hits);
+      loadMoreBtn.hidden = true;
+    }).catch (error => onFetchError());
+}
+    
+function onLoadMore() {
+  page += 1;
+ 
+  fetchImages(searchQuery, page, imgPerPage).then(data => {
+    const totalPages = data.totalHits / imgPerPage;
+
+    if (page === totalPages) {
+      loadMoreBtn.hidden = true;
+      Notiflix.Notify.info('We`re sorry, but you`ve reached the end of search results.');
+    }
+      //  console.log(data)
         createImageslist(data.hits);
     }).catch (error => onFetchError());
 }
-
-// export { fetchImages };
-async function fetchImages(q) {
-const BASE_URL = 'https://pixabay.com/api/';
-    const API_KEY = '32979410-6576ce951400b06dd5e7c6a2c';
-    const response = await axios.get(`${BASE_URL}?key=${API_KEY}&q=ghjkl&image_type=photo&orientation=horizontal&safesearch=true`);
-    console.log(response)
-    return response.data;
-}
-    
 // function onInputSearch(evt) {
 //   const searchQuery = evt.target.value.trim();
  
@@ -114,6 +124,7 @@ function createImageslist(images) {
     
     gallery.insertAdjacentHTML('beforeend', markup);
     
+    setStyles();
 }
 // function createCountryListMarkup(country) {
 //   const markup = country
@@ -130,20 +141,23 @@ function createImageslist(images) {
 //   setStyles();
 // }
 
-// function clearFields() {
-//   countryList.innerHTML = '';
-//     countryInfo.innerHTML = '';
-// }
+function clearMarkup() {
+  gallery.innerHTML = '';
+}
 
 function onFetchError() {
      Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
 }
 
-// function setStyles() {
-//   const title = document.querySelectorAll('.title');
-//   title.forEach(listEl => {
-//     listEl.style.display = 'flex';
-//     listEl.style.gap = '20px';
-//     listEl.style.alignItems = 'center';
-//   });
-//  }
+function setStyles() {
+  const info = document.querySelectorAll('.info');
+  info.forEach(infoEl => {
+    infoEl.style.display = 'flex';
+    infoEl.style.gap = '20px';
+    infoEl.style.alignItems = 'center';
+  });
+}
+gallery.style.display = 'flex';
+gallery.style.flexWrap = 'wrap';
+gallery.style.gap = '10px';
+// gallery.style.flexBasis = `${(100%-3*10)/4}`;
