@@ -1,11 +1,7 @@
 import Notiflix from 'notiflix';
-import {fetchImages} from './fetchImages.js'
-// console.log(Notiflix);
-
-// Notiflix.Notify.success('Hooray! We found totalHits images.');
-// Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-// Notiflix.Notify.warning('Memento te hominem esse');
-// Notiflix.Notify.info('We're sorry, but you've reached the end of search results.');
+import { fetchImages } from './fetchImages.js';
+import SimpleLightbox from "simplelightbox";
+import "simplelightbox/dist/simple-lightbox.min.css";
 
 const form = document.querySelector('#search-form');
 const gallery = document.querySelector('.gallery');
@@ -25,21 +21,25 @@ function onFormSubmit(evt) {
     onFetchError();
     return;
     }
- page = 1;
-fetchImages(searchQuery, page, imgPerPage).then(data => {
-        if (data.hits.length === 0) {
+  page = 1;
+ 
+  fetchImages(searchQuery, page, imgPerPage).then(data => {
+    console.log(data.hits)
+    console.log(data.totalHits)
+        if (data.totalHits === 0) {
           onFetchError();
           return;
       }
             
   Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
-      createImageslist(data.hits);
-      loadMoreBtn.hidden = false;
-  
+        
       if (data.totalHits <= imgPerPage) {
-        loadMoreBtn.hidden = true;
-        Notiflix.Notify.info('We`re sorry, but you`ve reached the end of search results.');
-      }
+        // loadMoreBtn.hidden = true;
+        // Notiflix.Notify.info('We`re sorry, but you`ve reached the end of search results.');
+        onEndMessage();
+  }
+  createImageslist(data.hits);
+      loadMoreBtn.hidden = false;
     }).catch (error => onFetchError());
 }
     
@@ -49,61 +49,26 @@ function onLoadMore() {
   fetchImages(searchQuery, page, imgPerPage).then(data => {
     // console.log(data)
     createImageslist(data.hits);
+    // lightboxGallery.refresh();
+    // data.totalHits <= imgPerPage * page
 
     if (data.hits.length <  imgPerPage || data.totalHits === imgPerPage * page) {
-      loadMoreBtn.hidden = true;
-      Notiflix.Notify.info('We`re sorry, but you`ve reached the end of search results.');
-    }     
-    }).catch (error => onFetchError());
+      // loadMoreBtn.hidden = true;
+      // Notiflix.Notify.info('We`re sorry, but you`ve reached the end of search results.');
+      onEndMessage();
+    }
+    
+  }).catch(error => onFetchError());
+  
 }
-// function onInputSearch(evt) {
-//   const searchQuery = evt.target.value.trim();
- 
-//   if (!searchQuery) {
-//     clearFields();
-//     return;
-//   }
-//   fetchCountries(searchQuery)
-//     .then(data => {
-      
-//       if (data.length > 10) {
-//         clearFields();
-//         return Notiflix.Notify.info('Too many matches found. Please enter a more specific name.');
 
-//       } else if (data.length >= 2 && data.length <= 10) {
-//         countryInfo.innerHTML = '';
-//         createCountryListMarkup(data);
-          
-//       } else {
-//         countryList.innerHTML = '';
-//         createCountryInfoMarkup(data);
-//       }
-//     }
-//     )
-//     .catch((error) => {
-//       clearFields();
-//       onFetchError();
-//     });
-// }
-
-// function createCountryInfoMarkup(country) {
-//   const markup = country
-//     .map(({ flags: { svg: flag }, name: { official: name }, capital, population, languages }) => 
-//       `<div class="title"><img src="${flag}" alt="${name}" width="40"/>
-//   <h2>${name}</h2></div>
-//   <p><b>Capital: </b>${capital[0]}</p>
-//   <p><b>Population: </b>${population}</p>
-//   <p><b>Languages: </b>${Object.values(languages).join(', ')}</p>`
-// ).join("");
-//   countryInfo.innerHTML = markup;
-
-//   setStyles();
-// }
 function createImageslist(images) {
     console.log(images)
     const markup = images.map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) =>
         `<div class="photo-card">
-    <img src="${webformatURL}" alt="${tags}" loading="lazy" />
+    <a href="${largeImageURL}" class="photo-link">
+    <img class="card-img" src="${webformatURL}" alt="${tags}" loading="lazy" width="370" height="250"/>
+    </a>
   <div class="info">
     <p class="info-item">
       <b>Likes ${likes}</b>
@@ -120,24 +85,13 @@ function createImageslist(images) {
   </div>
 </div>`).join('');
     
-    gallery.insertAdjacentHTML('beforeend', markup);
-    
+  gallery.insertAdjacentHTML('beforeend', markup);
+  
+  const lightboxGallery = new SimpleLightbox('.gallery a');
+
+  lightboxGallery.refresh();
     setStyles();
 }
-// function createCountryListMarkup(country) {
-//   const markup = country
-//     .map(({ flags: { svg: flag }, name: { official: name } }) =>
-//       `<li class="title"><img src="${flag}" alt="${name}" width="40"/>
-//   <h2>${name}</h2></li>`).join('');
-//   countryList.innerHTML = markup;
-
-//   const list = document.querySelectorAll('li');
-//   list.forEach(listEl => {
-//     listEl.style.listStyle = 'none';
-//   });
-
-//   setStyles();
-// }
 
 function clearMarkup() {
   gallery.innerHTML = '';
@@ -148,14 +102,16 @@ function onFetchError() {
 }
 
 function setStyles() {
-  const info = document.querySelectorAll('.info');
-  info.forEach(infoEl => {
+  const imgInfo = document.querySelectorAll('.info');
+  imgInfo.forEach(infoEl => {
     infoEl.style.display = 'flex';
-    infoEl.style.gap = '20px';
-    infoEl.style.alignItems = 'center';
+    infoEl.style.gap = '10px';
+    infoEl.style.justifyContent = 'space-around';
+    infoEl.style.width = '370px';
   });
 }
-gallery.style.display = 'flex';
-gallery.style.flexWrap = 'wrap';
-gallery.style.gap = '10px';
-// gallery.style.flexBasis = `${(100%-3*10)/4}`;
+
+  function onEndMessage() {
+    loadMoreBtn.hidden = true;
+        Notiflix.Notify.info('We`re sorry, but you`ve reached the end of search results.');
+  }
