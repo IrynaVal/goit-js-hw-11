@@ -4,16 +4,28 @@
   left: 0;
   top: 0;
   width: 100%;
-  height: 30px;
+  height: 45px;
   padding-top: 5px;
   padding-bottom: 5px;
   background-color: teal;
   z-index: 1;
 }
-
 .search-input {
   margin-left: auto;
+  width: 250px;
+  height: 30px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  outline: transparent;
+  font-size: 16px;
+  color: black;
 }
 .search-btn {
   margin-right: auto;
+  height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
 }

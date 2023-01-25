@@ -17,15 +17,15 @@ function onFormSubmit(evt) {
   evt.preventDefault();
   clearMarkup();
   searchQuery = evt.currentTarget.elements.searchQuery.value.trim();
-   if (searchQuery === '') {
+   
+  if (searchQuery === '') {
     onFetchError();
     return;
     }
+  
   page = 1;
- 
   fetchImages(searchQuery, page, imgPerPage).then(data => {
-    console.log(data.hits)
-    console.log(data.totalHits)
+    
         if (data.totalHits === 0) {
           onFetchError();
           return;
@@ -34,10 +34,8 @@ function onFormSubmit(evt) {
   Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
         
       if (data.totalHits <= imgPerPage) {
-        // loadMoreBtn.hidden = true;
-        // Notiflix.Notify.info('We`re sorry, but you`ve reached the end of search results.');
-        onEndMessage();
-  }
+         onLastPageMessage();
+    }
   createImageslist(data.hits);
       loadMoreBtn.hidden = false;
     }).catch (error => onFetchError());
@@ -45,29 +43,23 @@ function onFormSubmit(evt) {
     
 function onLoadMore() {
   page += 1;
- 
   fetchImages(searchQuery, page, imgPerPage).then(data => {
-    // console.log(data)
+    
     createImageslist(data.hits);
-    // lightboxGallery.refresh();
-    // data.totalHits <= imgPerPage * page
-
+    
     if (data.hits.length <  imgPerPage || data.totalHits === imgPerPage * page) {
-      // loadMoreBtn.hidden = true;
-      // Notiflix.Notify.info('We`re sorry, but you`ve reached the end of search results.');
-      onEndMessage();
+      onLastPageMessage();
     }
     
   }).catch(error => onFetchError());
-  
-}
+  }
 
 function createImageslist(images) {
     console.log(images)
     const markup = images.map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) =>
         `<div class="photo-card">
-    <a href="${largeImageURL}" class="photo-link">
-    <img class="card-img" src="${webformatURL}" alt="${tags}" loading="lazy" width="370" height="250"/>
+    <a href="${largeImageURL}">
+    <img src="${webformatURL}" alt="${tags}" loading="lazy" width="370" height="250"/>
     </a>
   <div class="info">
     <p class="info-item">
@@ -88,9 +80,9 @@ function createImageslist(images) {
   gallery.insertAdjacentHTML('beforeend', markup);
   
   const lightboxGallery = new SimpleLightbox('.gallery a');
-
   lightboxGallery.refresh();
-    setStyles();
+
+  setStyles();
 }
 
 function clearMarkup() {
@@ -111,7 +103,7 @@ function setStyles() {
   });
 }
 
-  function onEndMessage() {
+  function onLastPageMessage() {
     loadMoreBtn.hidden = true;
-        Notiflix.Notify.info('We`re sorry, but you`ve reached the end of search results.');
+    Notiflix.Notify.info('We`re sorry, but you`ve reached the end of search results.');
   }
