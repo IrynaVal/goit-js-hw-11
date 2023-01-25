@@ -16,6 +16,7 @@ loadMoreBtn.addEventListener('click', onLoadMore);
 function onFormSubmit(evt) {
   evt.preventDefault();
   clearMarkup();
+  loadMoreBtn.hidden = true;
   searchQuery = evt.currentTarget.elements.searchQuery.value.trim();
    
   if (searchQuery === '') {
@@ -37,7 +38,7 @@ function onFormSubmit(evt) {
          onLastPageMessage();
     }
   createImageslist(data.hits);
-      loadMoreBtn.hidden = false;
+  loadMoreBtn.hidden = false;
     }).catch (error => onFetchError());
 }
     
@@ -55,7 +56,6 @@ function onLoadMore() {
   }
 
 function createImageslist(images) {
-    console.log(images)
     const markup = images.map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) =>
         `<div class="photo-card">
     <a href="${largeImageURL}">
